@@ -1,5 +1,6 @@
-package com.restmonkeys.rediscache;
+package com.restmonkeys.rediscache.converter;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONArray;
 
@@ -7,6 +8,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class ListConverter<T> implements Converter<List<T>> {
+
+    private static Logger log = Logger.getLogger(ListConverter.class);
+
     @Override
     public String from(List<T> obj) {
         if (obj == null) {
@@ -24,7 +28,7 @@ public class ListConverter<T> implements Converter<List<T>> {
             //noinspection unchecked
             return new ObjectMapper().readValue(obj, List.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Error happened with parsing JSON to list", e);
         }
         return null;
     }

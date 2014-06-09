@@ -1,4 +1,4 @@
-package com.restmonkeys.rediscache;
+package com.restmonkeys.rediscache.converter;
 
 public interface Converter<T> {
     public String from(T obj);

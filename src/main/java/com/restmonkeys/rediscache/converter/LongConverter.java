@@ -1,4 +1,4 @@
-package com.restmonkeys.rediscache;
+package com.restmonkeys.rediscache.converter;
 
 public class LongConverter implements Converter<Long> {
     @Override

@@ -1,5 +1,6 @@
 package com.restmonkeys.rediscache;
 
+import com.restmonkeys.rediscache.converter.Converter;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
