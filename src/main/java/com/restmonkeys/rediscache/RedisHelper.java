@@ -67,6 +67,15 @@ public class RedisHelper implements Serializable {
         return new Cache(hash, name, result);
     }
 
+    public Cache getValue(String name) {
+        if (jedisPool == null) {
+            return new Cache(null, null, null);
+        }
+        Jedis jedis = jedisPool.getResource();
+        String result = jedis.get(name);
+        jedisPool.returnResource(jedis);
+        return new Cache(null, name, result);
+    }
 
     public void putValue(String name, String value) {
         if (jedisPool == null) {
@@ -74,6 +83,15 @@ public class RedisHelper implements Serializable {
         }
         Jedis jedis = jedisPool.getResource();
         jedis.set(name, value);
+        jedisPool.returnResource(jedis);
+    }
+
+    public void putValue(String hash, String name, String value) {
+        if (jedisPool == null) {
+            return;
+        }
+        Jedis jedis = jedisPool.getResource();
+        jedis.hset(hash, name, value);
         jedisPool.returnResource(jedis);
     }
 
@@ -87,11 +105,28 @@ public class RedisHelper implements Serializable {
         jedisPool.returnResource(jedis);
     }
 
+    public void putValueExpired(String name, String value, int timeout) {
+        if (jedisPool == null || value == null) {
+            return;
+        }
+        Jedis jedis = jedisPool.getResource();
+        jedis.set(name, value);
+        jedis.expire(name, timeout);
+        jedisPool.returnResource(jedis);
+    }
+
     public void putValueExpired(String hash, String name, String value) {
         if (jedisPool == null) {
             return;
         }
         putValueExpired(hash, name, value, DEFAULT_TIMEOUT);
+    }
+
+    public void putValueExpired(String name, String value) {
+        if (jedisPool == null) {
+            return;
+        }
+        putValueExpired(name, value, DEFAULT_TIMEOUT);
     }
 
     public class Cache {
@@ -132,7 +167,11 @@ public class RedisHelper implements Serializable {
                 }
                 //noinspection unchecked
                 value = converter.from(tmpValue);
-                putValueExpired(hash, name, value);
+                if (hash != null) {
+                    putValueExpired(hash, name, value);
+                } else {
+                    putValueExpired(name, value);
+                }
                 //noinspection unchecked
                 return tmpValue;
             }
