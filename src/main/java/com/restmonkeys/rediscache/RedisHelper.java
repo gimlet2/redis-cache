@@ -6,6 +6,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.Properties;
 
 public class RedisHelper implements Serializable {
@@ -132,9 +133,9 @@ public class RedisHelper implements Serializable {
 
     public class Cache {
 
-        private String value;
+        private Optional<String> value;
         private String name;
-        private String hash;
+        private Optional<String> hash;
         private Converter converter = new Converter<String>() { // default converter for Strings values
             @Override
             public String from(String obj) {
@@ -149,15 +150,15 @@ public class RedisHelper implements Serializable {
         };
 
         public Cache(String hash, String name, String value) {
-            this.value = value;
+            this.value = Optional.ofNullable(value);
             this.name = name;
-            this.hash = hash;
+            this.hash = Optional.ofNullable(hash);
         }
 
         public <T> T then(Eval<T> eval) {
-            if (value != null) {
+            if (value.isPresent()) {
                 //noinspection unchecked
-                return (T) converter.to(value);
+                return (T) converter.to(value.get());
             } else {
                 if (eval == null) {
                     return null;
@@ -167,11 +168,11 @@ public class RedisHelper implements Serializable {
                     return null;
                 }
                 //noinspection unchecked
-                value = converter.from(tmpValue);
-                if (hash != null) {
-                    putValueExpired(hash, name, value);
+                value = Optional.ofNullable(converter.from(tmpValue));
+                if (hash.isPresent()) {
+                    putValueExpired(hash.get(), name, value.orElse(""));
                 } else {
-                    putValueExpired(name, value);
+                    putValueExpired(name, value.orElse(""));
                 }
                 //noinspection unchecked
                 return tmpValue;
